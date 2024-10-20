@@ -1,5 +1,6 @@
 const express = require("express");
 const sequelize = require("./db");
+const redisClient = require("./extensions/redis");
 const models = require("./models/models");
 const router = require("./router/index");
 const path = require("path");
@@ -14,6 +15,7 @@ const PORT = process.env.PORT;
 
 const start = async () => {
 	try {
+		await redisClient.connect();
 		await sequelize.authenticate();
 		await sequelize.sync();
 		console.log(`server starts ON ${PORT}`);

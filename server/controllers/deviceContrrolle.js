@@ -1,6 +1,7 @@
 const uuid = require("uuid");
 const { Device, DeviceInfo } = require("../models/models");
 const path = require("path");
+const redisClient = require("../extensions/redis");
 const ApiErr = require("../err/error");
 
 class DeviceController {
@@ -29,7 +30,11 @@ class DeviceController {
 					});
 				});
 			}
-
+			const dataCache = await Device.findAll();
+			redisClient.set("allDevice", JSON.stringify(dataCache), {
+				EX: 60 * 60 * 24 * 7,
+				NX: true,
+			});
 			res.json(device);
 		} catch (e) {
 			next(ApiErr.badRequest(e.message));
@@ -65,6 +70,10 @@ class DeviceController {
 		}
 		if (!typeId && !brandId) {
 			device = await Device.findAll({ limit, offset });
+			redisClient.set("allDevice", JSON.stringify(device), {
+				EX: 60 * 60 * 24 * 7,
+				NX: true,
+			});
 		}
 
 		res.status(200).json(device);
